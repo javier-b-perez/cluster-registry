@@ -1,0 +1,31 @@
+# This defines the steps to build clusterregistry Docker image using 
+# Google Cloud Container Builder and push it to your Google Container Registry.
+#
+# The image can be built automatically for every change on the code using
+# https://cloud.google.com/container-builder/docs/how-to/build-triggers
+#
+# To run in Google Cloud Container Builder:
+# $ gcloud container builds submit --config cloudbuild.yaml .
+#
+# To run in Container Builder locally:
+# install local builder:
+#  https://github.com/GoogleCloudPlatform/container-builder-local
+#
+# $ container-builder-local --dryrun=false \
+#    --config cloudbuild.yaml .
+
+steps:
+- name: 'gcr.io/cloud-builders/bazel'
+  entrypoint: 'bash'
+  args: ['update-codegen.sh']
+
+- name: 'gcr.io/cloud-builders/bazel'
+  args: ['run', '//:gazelle']
+
+- name: 'gcr.io/cloud-builders/bazel'
+  args: ['build', '//cmd/clusterregistry:clusterregistry-image']
+
+- name: gcr.io/cloud-builders/docker
+  args: ['tag', 'bazel/path/to/some:docker_target', 'gcr.io/$PROJECT_ID/clusterregistry']
+
+images: ['gcr.io/$PROJECT_ID/clusterregistry']
