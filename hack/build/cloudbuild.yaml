@@ -1,8 +1,0 @@
-# These steps build the container builder used in the build of clusterregistry.
-# Image will be tagged as 'latest'.
-
-steps:
-- name: gcr.io/cloud-builders/docker
-  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/clusterregistry_builder', '.']
-
-images: ['gcr.io/$PROJECT_ID/clusterregistry_builder']

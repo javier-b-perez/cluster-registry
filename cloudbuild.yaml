@@ -16,42 +16,21 @@
 timeout: 10800s
 
 steps:
-# Create builder image. In future try to use it from registry, not recreate.
-- name: 'gcr.io/cloud-builders/docker'
-  entrypoint: 'bash'
-  args:
-    - '-c'
-    - |
-      set -e
-      docker_image="gcr.io/$PROJECT_ID/clusterregistry_builder"
-      version="latest"
-      image="$${docker_image}:$${version}"
-      echo "Building docker image $${image}"
-      docker build --cache-from $${docker_image} -t $${image} ./hack/build/
-
-# Prerequisites
-- name: 'gcr.io/$PROJECT_ID/clusterregistry_builder'
-  entrypoint: 'bash'
-  args: ['hack/update-codegen.sh']
-
-- name: 'gcr.io/$PROJECT_ID/clusterregistry_builder'
-  args: ['run', '//:gazelle']
-
 # Build and tag clusterregistry image. Image will be tag as 'latest'
-- name: 'gcr.io/$PROJECT_ID/clusterregistry_builder'
+- name: 'gcr.io/cloud-builders/bazel'
   args: ['build', '//cmd/clusterregistry:clusterregistry-image.tar']
 
 - name: 'gcr.io/cloud-builders/docker'
   args: ['load', '-i', 'bazel-bin/cmd/clusterregistry/clusterregistry-image.tar']
 
-- name: gcr.io/cloud-builders/docker
+- name: 'gcr.io/cloud-builders/docker'
   args: ['tag', 'bazel/cmd/clusterregistry:clusterregistry-image', 'gcr.io/$PROJECT_ID/clusterregistry']
 
 # Build and release to Cloud Storage the command-line tool
-- name: 'gcr.io/$PROJECT_ID/clusterregistry_builder'
+- name: 'gcr.io/cloud-builders/bazel'
   args: ['build', '//cmd/crinit']
 
-- name: gcr.io/cloud-builders/gsutil
+- name: 'gcr.io/cloud-builders/gsutil'
   args: ['cp', 'bazel-bin/cmd/crinit/crinit', 'gs://$PROJECT_ID/crinit/$BUILD_ID/']
 
 # Push image to registry
