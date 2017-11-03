@@ -10,11 +10,11 @@ container_image(
 
 container_push(
     name = "push-clusterregistry-image",
+    format = "Docker",
     image = ":clusterregistry-image",
     registry = "gcr.io",
     repository = "$(project)/clusterregistry",
     tag = "dev",
-    format = "Docker",
 )
 
 go_library(
