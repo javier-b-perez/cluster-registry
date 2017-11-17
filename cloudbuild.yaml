@@ -1,18 +1,10 @@
 # Build clusterregistry container using Google Cloud Container Builder
-# and push it to your Google Container Registry.
+# and push it the Google Container Registry.
 #
 # The image can be built automatically for every change on the code using
 # https://cloud.google.com/container-builder/docs/how-to/build-triggers
 #
-# To run in Google Cloud Container Builder:
-# $ gcloud container builds submit --config cloudbuild.yaml .
-#
-# To run in Container Builder locally:
-# install local builder:
-#  https://github.com/GoogleCloudPlatform/container-builder-local
-#
-# $ container-builder-local --dryrun=false \
-#    --config cloudbuild.yaml .
+# See GCB_build.md file for instructions.
 timeout: 10800s
 
 steps:
@@ -24,14 +16,14 @@ steps:
   args: ['load', '-i', 'bazel-bin/cmd/clusterregistry/clusterregistry-image.tar']
 
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['tag', 'bazel/cmd/clusterregistry:clusterregistry-image', 'gcr.io/$PROJECT_ID/clusterregistry']
+  args: ['tag', 'bazel/cmd/clusterregistry:clusterregistry-image', 'gcr.io/google_containers/${_PREFIX}clusterregistry:${_VERSION}']
 
 # Build and release to Cloud Storage the command-line tool
 - name: 'gcr.io/cloud-builders/bazel'
   args: ['build', '//cmd/crinit']
 
 - name: 'gcr.io/cloud-builders/gsutil'
-  args: ['cp', 'bazel-bin/cmd/crinit/crinit', 'gs://$PROJECT_ID/crinit/$BUILD_ID/']
+  args: ['cp', 'bazel-bin/cmd/crinit/crinit', 'gs://kubernetes-release/addons/${_PREFIX}crinit/${_VERSION}/']
 
 # Push image to registry
-images: ['gcr.io/$PROJECT_ID/clusterregistry']
+images: ['gcr.io/google_containers/${_PREFIX}clusterregistry:${_VERSION}']
